@@ -85,27 +85,6 @@ func main() {
 
 }
 
-func hideIP(s string) (r string) {
-	processed := 0
-	r = ""
-	for i := range s {
-		b := s[len(s)-1-i]
-		if b == ':' || b == '.' {
-			processed++
-			r += string(b)
-		} else {
-			if processed < 3 {
-				r += "X"
-			} else {
-				r += string(b)
-			}
-		}
-	}
-
-	return
-
-}
-
 type Config struct {
 	LogstalgiaConfig config.LogstalgiaConfig `json:"logstalgia_config"`
 	ListenAddr string `json:"listen_addr"`
