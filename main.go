@@ -13,7 +13,23 @@ import (
 	"encoding/json"
 	"os"
 	"github.com/SilverCory/go-logstalgia/config"
+	"time"
+	"math/rand"
 )
+
+var charmap map[rune]rune
+var acceptable = []rune{'0', '1', '2','3','4','5','6','7','8','9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'}
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+	charmap = make(map[rune]rune)
+	go func() {
+		for _, v := range acceptable {
+			charmap[v] = acceptable[rand.Intn(len(acceptable))]
+		}
+		time.Sleep(time.Minute*30)
+	}()
+}
 
 func main() {
 
@@ -24,7 +40,6 @@ func main() {
 	logstashInstance := logstash.New(conf.AuthKey, log.New())
 
 	logstashInstance.LogCallback = func(path, s string) {
-		fmt.Println(path)
 		if path != conf.LogFilePathMoitor {
 			return
 		}
@@ -32,7 +47,6 @@ func main() {
 		logentry := &logstalgia.LogEntry{}
 		parts := strings.SplitN(s, " | ", 6)
 		if len(parts) != 6 {
-			fmt.Println( len(parts ))
 			return
 		}
 
@@ -44,7 +58,7 @@ func main() {
 			logentry.Size = i
 		}
 
-		logentry.IP = parts[3]
+		logentry.IP = hideIP(parts[3])
 		logentry.Method = parts[4]
 		if i, err := strconv.Atoi(parts[5]); err != nil {
 			logentry.Result = 418
@@ -68,6 +82,27 @@ func main() {
 	if err := http.ListenAndServe(conf.ListenAddr, nil); err != nil {
 		fmt.Println("Fatal err:", err)
 	}
+
+}
+
+func hideIP(s string) (r string) {
+	processed := 0
+	r = ""
+	for i := range s {
+		b := s[len(s)-1-i]
+		if b == ':' || b == '.' {
+			processed++
+			r += string(b)
+		} else {
+			if processed < 3 {
+				r += "X"
+			} else {
+				r += string(b)
+			}
+		}
+	}
+
+	return
 
 }
 
@@ -115,5 +150,36 @@ func (c *Config) Save() error {
 	}
 
 	return nil
+
+}
+
+func hideIP(s string) (r string) {
+
+	s = strings.ToUpper(strings.TrimSpace(s))
+	parts := strings.Split(s, ".")
+	if len(parts) == 4 {
+		return hide(parts, ".")
+	}
+
+	parts = strings.Split(s, ":")
+	if len(parts) >= 2{
+		return hide(parts, ":")
+	}
+
+	return mapChars(s)
+
+}
+
+func hide(i []string, delimiter string) string {
+	i[3] = mapChars(i[3])
+	i[2] = mapChars(i[2])
+	return strings.Join(i, delimiter)
+}
+
+func mapChars(i string) (r string) {
+	for _, v := range i {
+		r += string(charmap[v])
+	}
+	return
 
 }
