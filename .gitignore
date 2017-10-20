@@ -288,3 +288,4 @@ Gopkg.lock
 vendor/
 pkg/
 config.json
+/builds/
