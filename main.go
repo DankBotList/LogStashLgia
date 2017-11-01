@@ -46,21 +46,21 @@ func main() {
 
 		logentry := &logstalgia.LogEntry{}
 		parts := strings.SplitN(s, " | ", 6)
-		if len(parts) != 6 {
+		if len(parts) != 7 {
 			return
 		}
 
-		logentry.Time = parts[0]
-		logentry.Path = parts[1]
-		if i, err := strconv.Atoi(parts[2]); err != nil {
+		logentry.Time = parts[1]
+		logentry.Path = parts[2]
+		if i, err := strconv.Atoi(parts[3]); err != nil {
 			logentry.Size = 1
 		} else {
 			logentry.Size = i
 		}
 
-		logentry.IP = hideIP(parts[3])
-		logentry.Method = parts[4]
-		if i, err := strconv.Atoi(parts[5]); err != nil {
+		logentry.IP = hideIP(parts[4])
+		logentry.Method = parts[5]
+		if i, err := strconv.Atoi(parts[6]); err != nil {
 			logentry.Result = 418
 		} else {
 			logentry.Result = i
