@@ -45,7 +45,7 @@ func main() {
 		}
 
 		logentry := &logstalgia.LogEntry{}
-		parts := strings.SplitN(s, " | ", 6)
+		parts := strings.SplitN(s, " | ", -1)
 		if len(parts) != 7 {
 			return
 		}
