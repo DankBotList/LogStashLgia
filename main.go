@@ -35,7 +35,12 @@ func main() {
 
 	conf := &Config{}
 	conf.Load()
+	
+	var d = func(f string, i ...interface{}) {
+		fmt.Printf(f + "\n", i...)	
+	}
 
+	d("Starting instance")
 	logstalgiaInstance := logstalgia.New(&conf.LogstalgiaConfig)
 	logstashInstance := logstash.New(conf.AuthKey, log.New())
 
@@ -66,7 +71,7 @@ func main() {
 			logentry.Result = i
 		}
 
-		fmt.Printf("%#v\n", logentry)
+		d("%#v", logentry)
 		logstalgiaInstance.Broadcast(logentry)
 
 	}
@@ -78,9 +83,10 @@ func main() {
 	router.HandleFunc("/", logstalgiaInstance.HandleIndex)
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static/")))
 
+	d("Starting server")
 	http.Handle("/", router)
 	if err := http.ListenAndServe(conf.ListenAddr, nil); err != nil {
-		fmt.Println("Fatal err:", err)
+		panic(err)
 	}
 
 }
@@ -90,6 +96,7 @@ type Config struct {
 	ListenAddr string `json:"listen_addr"`
 	AuthKey string `json:"auth_key"`
 	LogFilePathMoitor string `json:"log_file_path_moitor"`
+	Debug bool `json:"debug"`
 }
 
 func (c *Config) Load() {
@@ -133,7 +140,6 @@ func (c *Config) Save() error {
 }
 
 func hideIP(s string) (r string) {
-
 	s = strings.ToUpper(strings.TrimSpace(s))
 	parts := strings.Split(s, ".")
 	if len(parts) == 4 {
@@ -146,7 +152,6 @@ func hideIP(s string) (r string) {
 	}
 
 	return mapChars(s)
-
 }
 
 func hide(i []string, delimiter string) string {
